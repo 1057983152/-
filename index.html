@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="启蒙乐园">
+  <meta name="theme-color" content="#764ba2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>快乐启蒙乐园 - 认字 · 英语 · 趣味游戏</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="float-bg" aria-hidden="true">
+    <span>🌟</span><span>📚</span><span>✏️</span><span>🎨</span>
+    <span>🌈</span><span>🦋</span><span>🎈</span><span>🐼</span>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <h1><span class="logo">🌟</span> 快乐启蒙乐园</h1>
+      <div class="stats">
+        <span class="stat-pill">⭐ <span id="starCount">0</span></span>
+        <span class="stat-pill">汉 <span id="cnCount">0</span></span>
+        <span class="stat-pill">英 <span id="enCount">0</span></span>
+      </div>
+    </header>
+
+    <main class="panel" id="mainPanel">
+      <div class="empty-hint">正在加载…</div>
+    </main>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-page="home"><span class="ni">🏠</span>首页</button>
+      <button class="nav-btn" data-page="chinese"><span class="ni">📖</span>汉字</button>
+      <button class="nav-btn" data-page="english"><span class="ni">🔤</span>英语</button>
+      <button class="nav-btn" data-page="games"><span class="ni">🎮</span>游戏</button>
+      <button class="nav-btn" data-page="me"><span class="ni">⭐</span>我的</button>
+    </div>
+  </nav>
+
+  <script src="js/data-chinese.js"></script>
+  <script src="js/data-english.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

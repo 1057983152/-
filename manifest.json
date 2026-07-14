@@ -1,0 +1,19 @@
+{
+  "name": "快乐启蒙乐园",
+  "short_name": "启蒙乐园",
+  "description": "小学认字与英语启蒙趣味学习",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#764ba2",
+  "theme_color": "#764ba2",
+  "orientation": "portrait",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%23764ba2'/%3E%3Ctext x='64' y='84' font-size='72' text-anchor='middle'%3E%F0%9F%8C%9F%3C/text%3E%3C/svg%3E",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
