@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>现货纸上做市控制台</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #172033; background: #f4f6fb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: linear-gradient(180deg, #f8f9fd 0, #eef1f8 100%); }
+    .page { width: min(980px, 100%); margin: 0 auto; padding: 22px 16px 36px; }
+    .topbar { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 14px; }
+    h1 { margin: 0; font-size: clamp(21px, 5vw, 30px); letter-spacing: -.03em; }
+    .subtitle { margin: 6px 0 0; color: #687386; font-size: 13px; }
+    .badge { flex: none; border-radius: 999px; padding: 7px 10px; font-size: 11px; font-weight: 750; letter-spacing: .02em; background: #e8edf8; color: #3d4f70; }
+    .badge.ok { background: #e4f7ec; color: #177043; }
+    .badge.warn { background: #fff2dc; color: #9b5c00; }
+    .notice { display:flex; align-items:center; gap:8px; margin: 0 0 15px; padding: 11px 13px; border: 1px solid #dce4f2; border-radius: 12px; background: rgba(255,255,255,.72); color: #526078; font-size: 12px; line-height: 1.45; }
+    .notice strong { color: #28364f; }
+    .toolbar { display: flex; gap: 9px; margin: 0 0 16px; }
+    button { border: 0; border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .12s, opacity .12s; }
+    button:active { transform: scale(.98); } button:disabled { opacity: .5; cursor: not-allowed; }
+    .pause { color: #9d2536; background: #ffe7ea; } .resume { color: #11613a; background: #dff6e8; }
+    .competition { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; padding: 13px; border: 1px solid #e7d6a6; border-radius: 15px; background: linear-gradient(118deg, #fffdf5, #fff5d8); }
+    .competition-title { grid-column: 1 / -1; color: #72530f; font-size: 13px; font-weight: 850; }
+    .competition-item { min-width: 0; } .competition-label { color: #8a7957; font-size: 11px; font-weight: 700; } .competition-value { margin-top: 4px; color: #473612; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .card { min-height: 126px; padding: 17px 14px 15px; border: 1px solid #dfe4ee; border-radius: 15px; background: rgba(255,255,255,.92); box-shadow: 0 1px 2px rgba(28,42,70,.035); overflow: hidden; }
+    .label { color: #6d7789; font-size: clamp(12px, 2.8vw, 15px); font-weight: 700; line-height: 1.35; }
+    .value { margin-top: 19px; color: #172033; font-size: clamp(20px, 5.1vw, 31px); font-weight: 780; line-height: 1.08; letter-spacing: -.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .value.compact { font-size: clamp(18px, 4.4vw, 27px); }
+    .detail { min-height: 17px; margin-top: 7px; color: #7a8495; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .value.good { color: #14804a; } .value.bad { color: #bd3348; } .value.muted { color: #5d6b80; }
+    .section { margin-top: 15px; padding: 16px 14px; border: 1px solid #dfe4ee; border-radius: 15px; background: rgba(255,255,255,.92); }
+    .section-title { margin: 0 0 12px; color: #566176; font-size: 14px; font-weight: 800; }
+    .quote-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+    th { color: #7b8596; font-size: 11px; text-align: left; font-weight: 700; }
+    th, td { padding: 10px 5px; border-bottom: 1px solid #edf0f5; } td { color: #253047; } tbody tr:last-child td { border-bottom: 0; }
+    .buy { color: #18834c; font-weight: 800; } .sell { color: #c23349; font-weight: 800; }
+    .events { margin: 0; max-height: 150px; overflow: auto; color: #59667b; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    @media (min-width: 680px) { .page { padding: 32px 24px 48px; } .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .card { min-height: 136px; padding: 19px; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div><h1>现货纸上做市</h1><p class="subtitle" id="symbol">正在连接公开行情…</p></div>
+      <span class="badge" id="connection">连接中</span>
+    </div>
+    <div class="notice"><strong>纸上交易模式</strong><span>只读取公开行情，展示模拟报价与风控状态；不连接账户、不提交订单。</span></div>
+    <div class="toolbar"><button class="pause" id="pause" onclick="control(false)">暂停纸面报价</button><button class="resume" id="resume" onclick="control(true)">恢复纸面报价</button></div>
+    <section class="competition" aria-label="赛事监控">
+      <div class="competition-title" id="competition-name">赛事监控</div>
+      <div class="competition-item"><div class="competition-label">目标档位</div><div class="competition-value" id="competition-target">—</div></div>
+      <div class="competition-item"><div class="competition-label">距结束</div><div class="competition-value" id="competition-countdown">—</div></div>
+      <div class="competition-item"><div class="competition-label">账户 API</div><div class="competition-value" id="account-api">未连接</div></div>
+      <div class="competition-item"><div class="competition-label">真实合格成交额</div><div class="competition-value" id="eligible-notional">未连接账户</div></div>
+    </section>
+
+    <section class="metric-grid" aria-label="运行指标">
+      <article class="card"><div class="label">已运行时长</div><div class="value" id="runtime">—</div><div class="detail" id="started">启动后开始计算</div></article>
+      <article class="card"><div class="label">公开行情更新</div><div class="value" id="updates">—</div><div class="detail">仅行情事件，非成交笔数</div></article>
+      <article class="card"><div class="label">风控与报价状态</div><div class="value compact" id="risk">—</div><div class="detail" id="risk-detail">等待策略状态</div></article>
+      <article class="card"><div class="label">买一价</div><div class="value compact" id="best-bid">—</div><div class="detail" id="bid-size">买一数量：—</div></article>
+      <article class="card"><div class="label">卖一价</div><div class="value compact" id="best-ask">—</div><div class="detail" id="ask-size">卖一数量：—</div></article>
+      <article class="card"><div class="label">市场点差</div><div class="value" id="spread">—</div><div class="detail">基于公开最优买卖价</div></article>
+      <article class="card"><div class="label">买一盘口金额</div><div class="value compact" id="bid-notional">—</div><div class="detail">按计价币估算</div></article>
+      <article class="card"><div class="label">卖一盘口金额</div><div class="value compact" id="ask-notional">—</div><div class="detail">按计价币估算</div></article>
+      <article class="card"><div class="label">纸面买方报价金额</div><div class="value compact" id="quote-buy">—</div><div class="detail">当前被动报价，非成交</div></article>
+      <article class="card"><div class="label">纸面卖方报价金额</div><div class="value compact" id="quote-sell">—</div><div class="detail">当前被动报价，非成交</div></article>
+      <article class="card"><div class="label">策略基础币库存</div><div class="value compact" id="inventory">—</div><div class="detail" id="inventory-limit">库存上限：—</div></article>
+      <article class="card"><div class="label">会话模拟盈亏</div><div class="value compact" id="pnl">—</div><div class="detail">按公开中间价标记；未扣除真实费用</div></article>
+    </section>
+
+    <section class="section"><h2 class="section-title">当前纸面报价</h2><table class="quote-table"><thead><tr><th>方向</th><th>价格</th><th>数量</th><th>档位</th></tr></thead><tbody id="quotes"><tr><td colspan="4">等待行情…</td></tr></tbody></table></section>
+    <section class="section"><h2 class="section-title">最近事件</h2><pre class="events" id="events">等待行情…</pre></section>
+  </main>
+  <script>
+    const el = id => document.getElementById(id);
+    const number = (value, digits = 8) => value == null || !Number.isFinite(Number(value)) ? '—' : new Intl.NumberFormat('en-US', {maximumFractionDigits: digits}).format(Number(value));
+    const money = value => number(value, 2);
+    const duration = seconds => { const s = Math.max(0, Number(seconds) || 0); return [Math.floor(s / 3600), Math.floor(s % 3600 / 60), Math.floor(s % 60)].map(x => String(x).padStart(2, '0')).join(':'); };
+    const riskLabel = state => ({NORMAL: '运行中', SHOCK_PAUSED: '波动暂停', OPERATOR_PAUSED: '已暂停'})[state] || '等待中';
+    async function refresh() {
+      try {
+        const response = await fetch('/api/status', {cache: 'no-store'});
+        if (!response.ok) throw new Error('status ' + response.status);
+        const s = await response.json();
+        el('symbol').textContent = `${s.symbol} · ${s.mode === 'PAPER_ONLY' ? '公开行情与纸面报价' : s.mode}`;
+        const connection = el('connection'); connection.textContent = s.stream_connected ? '行情已连接' : '行情断开'; connection.className = 'badge ' + (s.stream_connected ? 'ok' : 'warn');
+        el('competition-name').textContent = s.competition_name || '赛事监控'; el('competition-target').textContent = s.competition_target || '—';
+        el('competition-countdown').textContent = s.competition_remaining_seconds == null ? '未设置' : duration(s.competition_remaining_seconds);
+        el('account-api').textContent = s.account_api_status === 'NOT_CONFIGURED' ? '未连接' : s.account_api_status;
+        el('eligible-notional').textContent = s.eligible_trade_notional == null ? '未连接账户' : money(s.eligible_trade_notional);
+        el('runtime').textContent = duration(s.runtime_seconds); el('started').textContent = s.last_update ? `最近更新 ${new Date(s.last_update * 1000).toLocaleTimeString()}` : '等待第一条行情';
+        el('updates').textContent = number(s.market_updates, 0); el('risk').textContent = riskLabel(s.risk_state);
+        el('risk').className = 'value compact ' + (s.risk_state === 'NORMAL' ? 'good' : s.risk_state === 'SHOCK_PAUSED' ? 'bad' : 'muted');
+        el('risk-detail').textContent = s.risk_state === 'SHOCK_PAUSED' ? '价格冲击保护已触发' : s.strategy_enabled ? `当前纸面报价 ${number(s.paper_quote_count, 0)} 档` : '由操作员暂停';
+        el('best-bid').textContent = number(s.best_bid); el('best-ask').textContent = number(s.best_ask);
+        el('bid-size').textContent = `买一数量：${number(s.bid_quantity)}`; el('ask-size').textContent = `卖一数量：${number(s.ask_quantity)}`;
+        el('spread').textContent = s.market_spread_bps == null ? '—' : `${number(s.market_spread_bps, 2)} bps`;
+        el('bid-notional').textContent = money(s.bid_notional_quote); el('ask-notional').textContent = money(s.ask_notional_quote);
+        el('quote-buy').textContent = money(s.paper_buy_quote_notional); el('quote-sell').textContent = money(s.paper_sell_quote_notional);
+        el('inventory').textContent = number(s.base_inventory); el('inventory-limit').textContent = `库存上限：±${number(s.inventory_limit)}`;
+        el('pnl').textContent = money(s.session_pnl_quote); el('pnl').className = 'value compact ' + (Number(s.session_pnl_quote) > 0 ? 'good' : Number(s.session_pnl_quote) < 0 ? 'bad' : 'muted');
+        el('quotes').innerHTML = s.quotes.length ? s.quotes.map(q => `<tr><td class="${q.side === 'BUY' ? 'buy' : 'sell'}">${q.side === 'BUY' ? '买入' : '卖出'}</td><td>${number(q.price)}</td><td>${number(q.quantity)}</td><td>${q.level + 1}</td></tr>`).join('') : '<tr><td colspan="4">当前无纸面报价（风控或暂停状态）</td></tr>';
+        el('events').textContent = s.events.join('\n') || s.last_error || '等待行情…';
+        el('pause').disabled = !s.strategy_enabled; el('resume').disabled = s.strategy_enabled;
+      } catch (error) { el('connection').textContent = '控制台不可达'; el('connection').className = 'badge warn'; }
+    }
+    async function control(enabled) { await fetch('/api/control', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({enabled})}); refresh(); }
+    refresh(); setInterval(refresh, 1000);
+  </script>
+</body>
+</html>
